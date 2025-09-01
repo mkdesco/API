@@ -15,6 +15,7 @@ import javax.validation.Valid;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Collections;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
 @CrossOrigin(origins = "*", maxAge = 3600)
@@ -26,39 +27,28 @@ public class ConsumerController {
     private ConsumerService consumerService;
 
     @PostMapping(
-            path = {"/ssl/api/consumerInformation"},
+            path = "/ssl/api/consumerInformation",
             consumes = "application/json",
             produces = "application/json")
-    public ResponseEntity<ConsumerResponseDTO> getConsumerDetails(
+    public CompletableFuture<ResponseEntity<ConsumerResponseDTO>> getConsumerDetails(
             @Valid @RequestBody ConsumerRequestDTO request) {
-        LocalDateTime callStart = LocalDateTime.now();
 
+        return consumerService.getByAccountUsingNative(request.getAccountNumber())
+                .thenApply(resp -> {
+                    if (resp == null || resp.getData() == null || resp.getData().isEmpty()) {
+                        ConsumerResponseDTO body = new ConsumerResponseDTO();
+                        body.setStatus(404);
+                        body.setData(Collections.emptyList());
+                        body.setErrors(Collections.singletonList(new ErrorDTO("404.1", "Consumer not found")));
+                        return ResponseEntity.status(404)
+                                .cacheControl(CacheControl.noStore())
+                                .body(body);
+                    }
 
-        ConsumerResponseDTO resp = consumerService.getByAccountUsingNative(request.getAccountNumber());
-
-        // Guard: avoid IndexOutOfBounds and NPEs
-        if (resp == null || resp.getData() == null || resp.getData().isEmpty()) {
-            ConsumerResponseDTO body = new ConsumerResponseDTO();
-            body.setStatus(404);
-            body.setData(Collections.emptyList());
-            body.setErrors(Collections.singletonList(new ErrorDTO("404.1", "Consumer not found")));
-            return ResponseEntity.status(404)
-                    .cacheControl(CacheControl.noStore())
-                    .body(body);
-        }
-
-        var row = resp.getData().get(0);
-        // ETag identifies this representation; include fields that change when data changes
-        String etag = "\"" + row.getAccountNumber() + "\"";
-
-        LocalDateTime callEnd = LocalDateTime.now();
-        long totalOperationTime = Duration.between(callStart, callEnd).toMillis();
-        resp.setTotalTime(totalOperationTime);
-
-        return ResponseEntity.status(resp.getStatus())
-                .eTag(etag)
-                .cacheControl(CacheControl.maxAge(60, TimeUnit.SECONDS).mustRevalidate())
-                .body(resp);
+                    return ResponseEntity.status(resp.getStatus())
+                            .cacheControl(CacheControl.noStore())
+                            .body(resp);
+                });
     }
 
     @PostMapping(
@@ -86,10 +76,6 @@ public class ConsumerController {
         var row = resp.getData().get(0);
         // ETag identifies this representation; include fields that change when data changes
         String etag = "\"" + row.getAccountNumber() + "\"";
-
-        LocalDateTime callEnd = LocalDateTime.now();
-        long totalOperationTime = Duration.between(callStart, callEnd).toMillis();
-        resp.setTotalTime(totalOperationTime);
 
         return ResponseEntity.status(resp.getStatus())
                 .eTag(etag)

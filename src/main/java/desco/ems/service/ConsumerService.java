@@ -7,6 +7,7 @@ import desco.ems.util.ConsumerSredaRow;
 import lombok.var;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -14,35 +15,30 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Collections;
+import java.util.concurrent.CompletableFuture;
 
 @Service
 public class ConsumerService {
     @Autowired
     private NewConsumerInformationRepository consumerInformationRepository;
 
+    @Async("dbExecutor")
     @Transactional(readOnly = true)
-    @Cacheable(cacheNames="consumerByAccount")
-    public ConsumerResponseDTO getByAccountUsingNative(String accountNo) {
+    public CompletableFuture<ConsumerResponseDTO> getByAccountUsingNative(String accountNo) {
+
+        var rows = consumerInformationRepository.findByAccountNo(accountNo);
+
         ConsumerResponseDTO resp = new ConsumerResponseDTO();
 
-        LocalDateTime dbStart = LocalDateTime.now();
-        var rows = consumerInformationRepository.findByAccountNo(accountNo);
-        LocalDateTime dbend = LocalDateTime.now();
-
-        long dbTime = Duration.between(dbStart, dbend).toMillis();
-        resp.setDbTime(dbTime);
-        System.out.println("Time taken in DB is- " + dbTime);
-
         if (rows == null || rows.isEmpty()) {
-            resp.setStatus(401);
+            resp.setStatus(404);
             resp.setData(Collections.emptyList());
-            resp.setErrors(Collections.singletonList(new ErrorDTO("401.1", "Consumer Number is not valid")));
-            return resp;
+            resp.setErrors(Collections.singletonList(new ErrorDTO("404.1", "Consumer not found")));
+            return CompletableFuture.completedFuture(resp);
         }
 
-        // Your current endpoint returns only the first row
-        ConsumerRow row = rows.get(0);
-        var date = row.getINSTALLATIONDATE() == null ? null
+        var row = rows.get(0);
+        String date = row.getINSTALLATIONDATE() == null ? null
                 : row.getINSTALLATIONDATE().format(DateTimeFormatter.ISO_LOCAL_DATE);
 
         ConsumerDataDTO dto = new ConsumerDataDTO(
@@ -65,12 +61,7 @@ public class ConsumerService {
         resp.setData(Collections.singletonList(dto));
         resp.setErrors(Collections.emptyList());
 
-        LocalDateTime operationEnd = LocalDateTime.now();
-        long operationTime = Duration.between(dbend, operationEnd).toMillis();
-        resp.setOperationTime(operationTime);
-
-        System.out.println("Time taken in operation is- " + operationTime);
-        return resp;
+        return CompletableFuture.completedFuture(resp);
     }
 
 
@@ -79,13 +70,7 @@ public class ConsumerService {
     public ConsumerResponseDTO getByAccountUsingNativeWithoutJoin(String accountNo) {
         ConsumerResponseDTO resp = new ConsumerResponseDTO();
 
-        LocalDateTime dbStart = LocalDateTime.now();
         var rows = consumerInformationRepository.findByAccountNoWithoutJoin(accountNo);
-        LocalDateTime dbend = LocalDateTime.now();
-
-        long dbTime = Duration.between(dbStart, dbend).toMillis();
-        resp.setDbTime(dbTime);
-        System.out.println("Time taken in DB is- " + dbTime);
 
         if (rows == null || rows.isEmpty()) {
             resp.setStatus(401);
@@ -119,11 +104,6 @@ public class ConsumerService {
         resp.setData(Collections.singletonList(dto));
         resp.setErrors(Collections.emptyList());
 
-        LocalDateTime operationEnd = LocalDateTime.now();
-        long operationTime = Duration.between(dbend, operationEnd).toMillis();
-        resp.setOperationTime(operationTime);
-
-        System.out.println("Time taken in operation is- " + operationTime);
         return resp;
     }
 
