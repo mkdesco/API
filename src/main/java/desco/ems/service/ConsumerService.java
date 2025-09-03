@@ -65,19 +65,24 @@ public class ConsumerService {
     }
 
     @Transactional(readOnly = true)
-    public ConsumerDataDTO getByAccountUsingNativeForSreda(String accountNo) {
+    public ConsumerResponseSreda getByAccountUsingNativeForSreda(String accountNo) {
 
         var rows = consumerInformationRepository.findByAccountNo(accountNo);
 
+        ConsumerResponseSreda resp = new ConsumerResponseSreda();
+
         if (rows == null || rows.isEmpty()) {
-            return new ConsumerDataDTO();
+            resp.setStatus(404);
+            resp.setData(new ConsumerDataDTO());
+            resp.setErrors(new ErrorDTO("404.1", "Consumer not found"));
+            return resp;
         }
 
         var row = rows.get(0);
         String date = row.getINSTALLATIONDATE() == null ? null
                 : row.getINSTALLATIONDATE().format(DateTimeFormatter.ISO_LOCAL_DATE);
 
-        ConsumerDataDTO consumerDataDTO = new ConsumerDataDTO(
+        ConsumerDataDTO dto = new ConsumerDataDTO(
                 row.getACCOUNTNUMBER(),
                 row.getNAME(),
                 row.getMETERNUMBER(),
@@ -93,7 +98,11 @@ public class ConsumerService {
                 row.getTRANSFORMER()
         );
 
-        return consumerDataDTO;
+        resp.setStatus(200);
+        resp.setData(dto);
+        resp.setErrors(new ErrorDTO());
+
+        return resp;
     }
 
     @Transactional(readOnly = true)

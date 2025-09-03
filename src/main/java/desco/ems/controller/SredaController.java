@@ -1,9 +1,6 @@
 package desco.ems.controller;
 
-import desco.ems.dto.ConsumerDataDTO;
-import desco.ems.dto.ConsumerRequestDTO;
-import desco.ems.dto.ConsumerResponseDTO;
-import desco.ems.dto.ErrorDTO;
+import desco.ems.dto.*;
 import desco.ems.service.ConsumerService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.CacheControl;
@@ -15,6 +12,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
+import java.util.Collections;
+import java.util.concurrent.CompletableFuture;
 
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
@@ -28,7 +27,7 @@ public class SredaController {
             path = "/sreda/api/consumerInformation",
             consumes = "application/json",
             produces = "application/json")
-    public ConsumerDataDTO getConsumerDetails(
+    public ConsumerResponseSreda getConsumerDetails(
             @Valid @RequestBody ConsumerRequestDTO request) {
 
         return consumerService.getByAccountUsingNativeForSreda(request.getAccountNumber());
