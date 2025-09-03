@@ -64,6 +64,37 @@ public class ConsumerService {
         return CompletableFuture.completedFuture(resp);
     }
 
+    @Transactional(readOnly = true)
+    public ConsumerDataDTO getByAccountUsingNativeForSreda(String accountNo) {
+
+        var rows = consumerInformationRepository.findByAccountNo(accountNo);
+
+        if (rows == null || rows.isEmpty()) {
+            return new ConsumerDataDTO();
+        }
+
+        var row = rows.get(0);
+        String date = row.getINSTALLATIONDATE() == null ? null
+                : row.getINSTALLATIONDATE().format(DateTimeFormatter.ISO_LOCAL_DATE);
+
+        ConsumerDataDTO consumerDataDTO = new ConsumerDataDTO(
+                row.getACCOUNTNUMBER(),
+                row.getNAME(),
+                row.getMETERNUMBER(),
+                row.getLOAD(),
+                row.getTARIFF(),
+                row.getOFFICECODE(),
+                row.getVOLTAGELEVEL(),
+                row.getSITEADDRESS(),
+                date,
+                row.getCCATEGORY(),
+                row.getMSTATUS(),
+                row.getFEEDER(),
+                row.getTRANSFORMER()
+        );
+
+        return consumerDataDTO;
+    }
 
     @Transactional(readOnly = true)
     @Cacheable(cacheNames="consumerByAccount")
