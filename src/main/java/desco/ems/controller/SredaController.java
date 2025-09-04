@@ -24,10 +24,10 @@ public class SredaController {
     private ConsumerService consumerService;
 
     @PostMapping(
-            path = "/sreda/api/consumerInformation",
+            path = "/sreda/api/consumerinfo",
             consumes = "application/json",
             produces = "application/json")
-    public ConsumerResponseSreda getConsumerDetails(
+    public ApiResponse<ConsumerDataSreda> getConsumerDetails(
             @Valid @RequestBody ConsumerRequestDTO request) {
 
         return consumerService.getByAccountUsingNativeForSreda(request.getAccountNumber());

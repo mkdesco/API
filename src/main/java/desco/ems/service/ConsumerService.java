@@ -14,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.concurrent.CompletableFuture;
 
@@ -64,45 +65,35 @@ public class ConsumerService {
         return CompletableFuture.completedFuture(resp);
     }
 
-    @Transactional(readOnly = true)
-    public ConsumerResponseSreda getByAccountUsingNativeForSreda(String accountNo) {
-
+    public ApiResponse<ConsumerDataSreda> getByAccountUsingNativeForSreda(String accountNo) {
         var rows = consumerInformationRepository.findByAccountNo(accountNo);
-
-        ConsumerResponseSreda resp = new ConsumerResponseSreda();
+        ApiResponse<ConsumerDataSreda> response = new ApiResponse<>();
 
         if (rows == null || rows.isEmpty()) {
-            resp.setStatus(404);
-            resp.setData(new ConsumerDataDTO());
-            resp.setErrors(new ErrorDTO("404.1", "Consumer not found"));
-            return resp;
+            response.setStatus(404);
+            response.setData(new ConsumerDataSreda());
+            response.setErrors(Collections.singletonList(new ErrorDTO("404.1", "Consumer not found")));
+            return response;
         }
 
         var row = rows.get(0);
-        String date = row.getINSTALLATIONDATE() == null ? null
-                : row.getINSTALLATIONDATE().format(DateTimeFormatter.ISO_LOCAL_DATE);
 
-        ConsumerDataDTO dto = new ConsumerDataDTO(
-                row.getACCOUNTNUMBER(),
-                row.getNAME(),
-                row.getMETERNUMBER(),
-                row.getLOAD(),
-                row.getTARIFF(),
-                row.getOFFICECODE(),
-                row.getVOLTAGELEVEL(),
-                row.getSITEADDRESS(),
-                date,
-                row.getCCATEGORY(),
-                row.getMSTATUS(),
-                row.getFEEDER(),
-                row.getTRANSFORMER()
-        );
+        ConsumerDataSreda dto = ConsumerDataSreda.builder()
+                .accountNumber(row.getACCOUNTNUMBER())
+                .name(row.getNAME())
+                .meterNumber(row.getMETERNUMBER())
+                .load(row.getLOAD())
+                .tariff(row.getTARIFF())
+                .officeCode(row.getOFFICECODE())
+                .voltageLevel(row.getVOLTAGELEVEL())
+                .siteAddress(row.getSITEADDRESS())
+                .build();
 
-        resp.setStatus(200);
-        resp.setData(dto);
-        resp.setErrors(new ErrorDTO());
+        response.setStatus(200);
+        response.setData(dto);
+        response.setErrors(new ArrayList<>());
 
-        return resp;
+        return response;
     }
 
     @Transactional(readOnly = true)
@@ -155,14 +146,14 @@ public class ConsumerService {
         if (rows == null || rows.isEmpty()) {
             resp.setStatus(401);
             resp.setData(Collections.emptyList());
-            resp.setErrors(Collections.singletonList(new ErrorDTO("401.1", "Consumer Number is not valid")));
+            resp.setError(Collections.singletonList(new ErrorDTO("401.1", "Consumer Number is not valid")));
             return resp;
         }
 
         // Keep only first row for parity with current behavior
         resp.setStatus(200);
         resp.setData(Collections.singletonList(rows.get(0)));
-        resp.setErrors(Collections.emptyList());
+        resp.setError(Collections.emptyList());
         return resp;
     }*/
 }

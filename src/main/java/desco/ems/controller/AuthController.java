@@ -1,12 +1,9 @@
 package desco.ems.controller;
 
 import desco.ems.dto.*;
-import desco.ems.model.BankInformation;
 import desco.ems.service.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 public class AuthController {
@@ -15,8 +12,8 @@ public class AuthController {
     private AuthenticationService authenticationService;
 
     @PostMapping(value = "/sreda/api/auth/signin")
-    public AuthenticationResponseDTO createAuthenticationTokenSREDA (@RequestBody AuthenticationRequestDTO authenticationRequestDTO) {
-        AuthenticationResponseDTO authenticationResponse = authenticationService.authenticate(authenticationRequestDTO);
+    public ApiResponse createAuthenticationTokenSREDA (@RequestBody AuthenticationRequestDTO authenticationRequestDTO) {
+        ApiResponse authenticationResponse = authenticationService.authenticateForSreda(authenticationRequestDTO);
         return authenticationResponse;
     }
 
