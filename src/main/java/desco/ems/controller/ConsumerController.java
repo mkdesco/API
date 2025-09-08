@@ -51,38 +51,6 @@ public class ConsumerController {
                 });
     }
 
-    @PostMapping(
-            path = {"/ssl/api/consumerInformationWithoutJoin"},
-            consumes = "application/json",
-            produces = "application/json")
-    public ResponseEntity<ConsumerResponseDTO> getConsumerDetailsWithoutJoin(
-            @Valid @RequestBody ConsumerRequestDTO request) {
-        LocalDateTime callStart = LocalDateTime.now();
-
-
-        ConsumerResponseDTO resp = consumerService.getByAccountUsingNativeWithoutJoin(request.getAccountNumber());
-
-        // Guard: avoid IndexOutOfBounds and NPEs
-        if (resp == null || resp.getData() == null || resp.getData().isEmpty()) {
-            ConsumerResponseDTO body = new ConsumerResponseDTO();
-            body.setStatus(404);
-            body.setData(Collections.emptyList());
-            body.setErrors(Collections.singletonList(new ErrorDTO("404.1", "Consumer not found")));
-            return ResponseEntity.status(404)
-                    .cacheControl(CacheControl.noStore())
-                    .body(body);
-        }
-
-        var row = resp.getData().get(0);
-        // ETag identifies this representation; include fields that change when data changes
-        String etag = "\"" + row.getAccountNumber() + "\"";
-
-        return ResponseEntity.status(resp.getStatus())
-                .eTag(etag)
-                .cacheControl(CacheControl.maxAge(60, TimeUnit.SECONDS).mustRevalidate())
-                .body(resp);
-    }
-
     @ExceptionHandler(org.springframework.web.bind.MethodArgumentNotValidException.class)
     public ResponseEntity<ConsumerResponseDTO> badRequest(org.springframework.web.bind.MethodArgumentNotValidException ex) {
         var body = new ConsumerResponseDTO();

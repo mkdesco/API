@@ -66,7 +66,7 @@ public class ConsumerService {
     }
 
     public ApiResponse<ConsumerDataSreda> getByAccountUsingNativeForSreda(String accountNo) {
-        var rows = consumerInformationRepository.findByAccountNo(accountNo);
+        var rows = consumerInformationRepository.findByAccountNoSreda(accountNo);
         ApiResponse<ConsumerDataSreda> response = new ApiResponse<>();
 
         if (rows == null || rows.isEmpty()) {
@@ -95,65 +95,4 @@ public class ConsumerService {
 
         return response;
     }
-
-    @Transactional(readOnly = true)
-    @Cacheable(cacheNames="consumerByAccount")
-    public ConsumerResponseDTO getByAccountUsingNativeWithoutJoin(String accountNo) {
-        ConsumerResponseDTO resp = new ConsumerResponseDTO();
-
-        var rows = consumerInformationRepository.findByAccountNoWithoutJoin(accountNo);
-
-        if (rows == null || rows.isEmpty()) {
-            resp.setStatus(401);
-            resp.setData(Collections.emptyList());
-            resp.setErrors(Collections.singletonList(new ErrorDTO("401.1", "Consumer Number is not valid")));
-            return resp;
-        }
-
-        // Your current endpoint returns only the first row
-        ConsumerRow row = rows.get(0);
-        var date = row.getINSTALLATIONDATE() == null ? null
-                : row.getINSTALLATIONDATE().format(DateTimeFormatter.ISO_LOCAL_DATE);
-
-        ConsumerDataDTO dto = new ConsumerDataDTO(
-                row.getACCOUNTNUMBER(),
-                row.getNAME(),
-                row.getMETERNUMBER(),
-                row.getLOAD(),
-                row.getTARIFF(),
-                row.getOFFICECODE(),
-                row.getVOLTAGELEVEL(),
-                row.getSITEADDRESS(),
-                date,
-                row.getCCATEGORY(),
-                row.getMSTATUS(),
-                row.getFEEDER(),
-                row.getTRANSFORMER()
-        );
-
-        resp.setStatus(200);
-        resp.setData(Collections.singletonList(dto));
-        resp.setErrors(Collections.emptyList());
-
-        return resp;
-    }
-
-    /*@Transactional(readOnly = true)
-    public ConsumerResponseDTO getByAccountUsingJpql(String accountNo) {
-        var rows = consumerInformationRepository.findByAccountNoJpql(accountNo);
-
-        ConsumerResponseDTO resp = new ConsumerResponseDTO();
-        if (rows == null || rows.isEmpty()) {
-            resp.setStatus(401);
-            resp.setData(Collections.emptyList());
-            resp.setError(Collections.singletonList(new ErrorDTO("401.1", "Consumer Number is not valid")));
-            return resp;
-        }
-
-        // Keep only first row for parity with current behavior
-        resp.setStatus(200);
-        resp.setData(Collections.singletonList(rows.get(0)));
-        resp.setError(Collections.emptyList());
-        return resp;
-    }*/
 }
