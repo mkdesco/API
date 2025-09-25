@@ -64,9 +64,9 @@ public class GisService {
         d.setTotalAmpsB(r.getLOADB());
         d.setXfAverageAmps(r.getAVGAMPS());
         d.setMaxAmpsN(r.getLOADN());
-        d.setXfMaxAmpsRecordDate(fmtDate(r.getAMPSDATE()));
-        d.setLastMaintenanceDate(fmtDate(r.getLAST_MAINTENANCE()));
-        d.setNextMaintenanceDate(fmtDate(r.getNEXT_MAINTENANCE()));
+        d.setXfMaxAmpsRecordDate(r.getAMPSDATE());
+        d.setLastMaintenanceDate(r.getLAST_MAINTENANCE());
+        d.setNextMaintenanceDate(r.getNEXT_MAINTENANCE());
 
         List<XformerDetails> one = new ArrayList<>();
         one.add(d);

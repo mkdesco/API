@@ -3,6 +3,8 @@ package desco.ems.dto;
 import lombok.*;
 
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Positive;
 
 @NoArgsConstructor
 @AllArgsConstructor
@@ -10,7 +12,8 @@ import javax.validation.constraints.NotBlank;
 @Getter
 @Setter
 public class TransformerDetailsRequestDTO {
-    @NotBlank
+    @NotNull
+    @Positive
     private Integer sndId;
 
     @NotBlank

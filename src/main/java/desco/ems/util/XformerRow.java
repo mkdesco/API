@@ -12,7 +12,7 @@ public interface XformerRow {
     String getLOADB();
     String getAVGAMPS();
     String getLOADN();
-    Timestamp getAMPSDATE();
-    Timestamp getLAST_MAINTENANCE();
-    Timestamp getNEXT_MAINTENANCE();
+    String getAMPSDATE();
+    String getLAST_MAINTENANCE();
+    String getNEXT_MAINTENANCE();
 }
