@@ -59,7 +59,8 @@ public interface NewConsumerInformationRepository extends JpaRepository<NewConsu
             "LEFT JOIN DESCO.EXTERNAL_CONTRACTOR EC " +
             "ON EC.APPLICATION_SERIAL_NO = TO_CHAR(NCI.APPLICATION_SERIAL_NO) " +
             "AND EC.TRACKING_NUMBER = NCI.TRACKING_NUMBER " +
-            "WHERE NCI.ACCOUNT_NO = :accountNo", nativeQuery = true)
+            "WHERE NCI.ACCOUNT_NO = :accountNo " +
+            "   AND NCI.ACCOUNT_ENABLE NOT IN (5,10) ", nativeQuery = true)
     List<ConsumerRow> findByAccountNo(@Param("accountNo") String accountNo);
 
     @Query(value =" SELECT " +
